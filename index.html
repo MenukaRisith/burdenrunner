@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Burden Runner — Vanilla</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <!-- Starting Video Screen -->
+    <div id="videoScreen" class="video-screen">
+        <div class="video-container">
+            <video id="introVideo" class="intro-video" autoplay muted playsinline>
+                <source src="bg.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+
+    <!-- Game Content (initially hidden) -->
+    <div id="gameContent" class="game-content hidden">
+        <!-- Top HUD cluster -->
+        <div class="hud-top">
+            <div class="hotbar-wrap">
+                <div id="hotbar" class="hotbar"></div>
+            </div>
+
+            <div class="progress-outer">
+                <div id="progress" class="progress-inner"></div>
+            </div>
+
+            <div class="hud-buttons">
+                <button id="pauseBtn" class="btn" title="Press P to toggle pause">Pause (P)</button>
+                <button id="territoryBtn" class="btn" title="Cycles Fire → Middle → Ice">
+                    Change Territory (<span id="territoryName">start</span>)
+                </button>
+            </div>
+        </div>
+
+        <!-- Main canvas -->
+        <canvas id="game" class="game-canvas"></canvas>
+
+        <!-- Left-side hearts -->
+        <div class="hud-left">
+            <div class="hearts-card">
+                <div class="hearts-row">
+                    <span class="label">Health</span>
+                    <div id="hearts" class="hearts"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast" class="toast hidden">msg</div>
+
+        <!-- Decision Modal -->
+        <div id="modalRoot" class="modal hidden" aria-hidden="true">
+            <div class="modal-backdrop"></div>
+            <div class="modal-card">
+                <div id="modalTitle" class="modal-title">Title</div>
+                <div id="modalText" class="modal-text">Content</div>
+                <div class="modal-actions">
+                    <button id="modalPrimary" class="btn">Primary</button>
+                    <button id="modalAlt" class="btn btn-ghost">Alt</button>
+                </div>
+                <div id="modalHint" class="modal-hint"></div>
+            </div>
+        </div>
+
+        <!-- End Screen -->
+        <div id="endRoot" class="modal hidden" aria-hidden="true">
+            <div class="modal-backdrop"></div>
+            <div class="modal-card end-card">
+                <div id="endTitle" class="end-title">You Survived</div>
+                <div id="endReason" class="end-reason">You endured three minutes.</div>
+                <button id="restartBtn" class="btn">Restart</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Video intro handling
+        const videoScreen = document.getElementById('videoScreen');
+        const gameContent = document.getElementById('gameContent');
+        const introVideo = document.getElementById('introVideo');
+        let gameAudio = null;
+
+        function initGameAudio() {
+            gameAudio = new Audio('audio.mp3');
+            gameAudio.loop = true;
+            gameAudio.volume = 0.7;
+
+            gameAudio.play().catch(error => {
+                console.log('Audio autoplay blocked by browser:', error);
+                const tryPlay = () => {
+                    if (gameAudio && gameAudio.paused) gameAudio.play().catch(() => { });
+                };
+                document.addEventListener('click', tryPlay, { once: true });
+                document.addEventListener('keydown', tryPlay, { once: true });
+            });
+
+            return gameAudio;
+        }
+
+        function startGame() {
+            videoScreen.classList.add('hidden');
+            gameContent.classList.remove('hidden');
+
+            // Start the game audio
+            initGameAudio();
+
+            // Initialize your game here or trigger game start
+            if (typeof initGame === 'function') {
+                initGame();
+            }
+        }
+
+        // Auto-start game when video ends / errors
+        introVideo.addEventListener('ended', startGame);
+        introVideo.addEventListener('error', startGame);
+
+        // Optional: Pause/resume audio when game is paused
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'p' || e.key === 'P') && gameAudio) {
+                if (gameAudio.paused) {
+                    gameAudio.play();
+                } else {
+                    gameAudio.pause();
+                }
+            }
+        });
+    </script>
+
+    <script src="game.js"></script>
+
+    <style>
+        /* Video Screen Styles */
+        .video-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .intro-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Removed .skip-btn styles */
+
+        .game-content {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            /* nothing needed for skip anymore */
+        }
+    </style>
+</body>
+
+</html>
